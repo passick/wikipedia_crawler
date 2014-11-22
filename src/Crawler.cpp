@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <ctime>
+#include <sys/wait.h>
 
 #include <fstream>
 #include <set>
@@ -31,7 +32,22 @@ bool Crawler::FetchNextPage()
   std::string filename = GenerateFileName();
   std::cout << "Downloading " << link << std::endl;
   int result = Downloader::DownloadPage(link, filename);
+  // check if program got signal to quit
+  if (WIFSIGNALED(result) &&
+      (WTERMSIG(result) == SIGINT || WTERMSIG(result) == SIGQUIT))
+  {
+    return false;
+  }
+  // decode value that was returned by system() call
+  result = WEXITSTATUS(result);
   if (result != 0)
+  {
+    std::cerr << "\033[1;31mFailed to fetch page " <<
+      link << "\033[0m" << std::endl;
+  }
+  if (result != 0 && result != 8)
+    // 8 means server issued an error response (like 404) and we should
+    // probably just ignore it
   {
     return false;
   }
