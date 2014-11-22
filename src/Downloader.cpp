@@ -3,7 +3,7 @@
 #include "Downloader.h"
 
 const std::string Downloader::downloader_program = "wget";
-const std::string Downloader::downloader_program_options = "";//--quiet";
+const std::string Downloader::downloader_program_options = "--quiet";
 const std::string Downloader::downloader_program_to_file_option = "--output-document=";
 
 int Downloader::DownloadPage(const std::string& link,
