@@ -4,8 +4,8 @@
 #include <fstream>
 #include <set>
 #include <string>
-#include <queue>
 #include <iostream>
+#include <deque>
 
 #include "Crawler.h"
 #include "Downloader.h"
@@ -18,18 +18,23 @@ std::string Crawler::GenerateFileName()
 
 bool Crawler::FetchNextPage()
 {
-  if (download_queue_.empty())
+  if (download_queue_.container.empty())
   {
     return false;
   }
-  std::string link = download_queue_.front();
+  std::string link = download_queue_.container.front();
   if (link.compare(0, root_path_.length(), root_path_) != 0)
   {
     link = root_path_ + link;
   }
   std::string filename = GenerateFileName();
+  std::cout << "Downloading " << link << std::endl;
   int result = Downloader::DownloadPage(link, filename);
-  download_queue_.pop();
+  if (result != 0)
+  {
+    return false;
+  }
+  download_queue_.container.pop_front();
 
   GetLinks(filename);
   return true;
@@ -76,10 +81,10 @@ void Crawler::GetLinks(const std::string& filename)
     {
       continue;
     }
-    if (visited_links_.count(link) == 0)
+    if (visited_links_.container.count(link) == 0)
     {
-      visited_links_.insert(link);
-      download_queue_.push(link);
+      visited_links_.container.insert(link);
+      download_queue_.container.push_back(link);
     }
   }
 }
@@ -90,12 +95,22 @@ Crawler::Crawler(const std::string& data_directory,
   data_directory_(data_directory),
   root_path_(root_path),
   required_link_prefix_(required_link_prefix)
-{ }
+{
+  download_queue_ =
+    SaveableStringContainer<std::deque<std::string>>
+    (data_directory_ + queue_filename_);
+  visited_links_ =
+    SaveableStringContainer<std::unordered_set<std::string>>
+    (data_directory_ + visited_filename_);
+}
 
 void Crawler::Crawl(const std::string& start_page)
 {
-  download_queue_.push(start_page);
-  visited_links_.insert(start_page);
+  if (download_queue_.container.empty())
+  {
+    download_queue_.container.push_back(start_page);
+    visited_links_.container.insert(start_page);
+  }
   while (FetchNextPage())
   {
   }

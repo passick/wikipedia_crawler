@@ -3,16 +3,19 @@
 
 #include <unordered_set>
 #include <string>
-#include <queue>
+#include <deque>
+#include "SaveableStringContainer.h"
 
 class Crawler
 {
-  std::unordered_set<std::string> visited_links_;
-  std::queue<std::string> download_queue_;
+  SaveableStringContainer<std::unordered_set<std::string>> visited_links_;
+  SaveableStringContainer<std::deque<std::string>> download_queue_;
   std::string data_directory_;
   std::string root_path_;
   std::string download_queue_file_;
   const std::string link_prefix_ = "<a href=\"";
+  const std::string queue_filename_ = "queue.tmp";
+  const std::string visited_filename_ = "visited.tmp";
   std::string required_link_prefix_;
 
   std::string GenerateFileName();
