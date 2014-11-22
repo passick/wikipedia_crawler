@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <deque>
+#include <vector>
 
 #include "Crawler.h"
 #include "Downloader.h"
@@ -73,6 +74,13 @@ void Crawler::GetLinks(const std::string& filename)
         flag = false;
         break;
       }
+      for (char banned_symbol : banned_symbols_)
+      {
+        if (ch == banned_symbol)
+        {
+          flag = false;
+        }
+      }
     } while (ch != '"');
     if (!flag ||
         link.compare(0,
@@ -91,10 +99,12 @@ void Crawler::GetLinks(const std::string& filename)
 
 Crawler::Crawler(const std::string& data_directory,
     const std::string& root_path,
-    const std::string& required_link_prefix) :
+    const std::string& required_link_prefix,
+    const std::vector<char>& banned_symbols) :
   data_directory_(data_directory),
   root_path_(root_path),
-  required_link_prefix_(required_link_prefix)
+  required_link_prefix_(required_link_prefix),
+  banned_symbols_(banned_symbols)
 {
   download_queue_ =
     SaveableStringContainer<std::deque<std::string>>

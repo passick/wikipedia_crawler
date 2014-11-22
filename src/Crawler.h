@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <string>
 #include <deque>
+#include <vector>
+
 #include "SaveableStringContainer.h"
 
 class Crawler
@@ -18,6 +20,8 @@ class Crawler
   const std::string visited_filename_ = "visited.tmp";
   std::string required_link_prefix_;
 
+  std::vector<char> banned_symbols_;
+
   std::string GenerateFileName();
   bool FetchNextPage();
   void GetLinks(const std::string& filename);
@@ -25,7 +29,8 @@ class Crawler
  public:
   Crawler(const std::string& data_directory,
       const std::string& root_path,
-      const std::string& required_link_prefix);
+      const std::string& required_link_prefix,
+      const std::vector<char>& banned_symbols);
 
   void Crawl(const std::string& start_page);
 };
