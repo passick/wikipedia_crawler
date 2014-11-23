@@ -50,7 +50,9 @@ int Crawler::FetchNextPage()
     std::cerr << "\033[1;31mFailed to fetch page " <<
       link << "\033[0m" << std::endl;
   }
-  if (result != 0)
+  if (result != 0 && result != 8)
+    // 8 means server issued an error response (like 404) and we should
+    // probably just ignore it
   {
     return 1;
   }
