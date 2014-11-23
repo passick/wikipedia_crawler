@@ -18,11 +18,16 @@ std::string Crawler::GenerateFileName()
     std::to_string(time(NULL)) + " " + std::to_string(rand());
 }
 
-bool Crawler::FetchNextPage()
+// Return value:
+// 0 - success
+// 1 - failed to download
+// 2 - received interruption signal
+// 3 - download queue is empty
+int Crawler::FetchNextPage()
 {
   if (download_queue_.container.empty())
   {
-    return false;
+    return 3;
   }
   std::string link = download_queue_.container.front();
   if (link.compare(0, root_path_.length(), root_path_) != 0)
@@ -36,7 +41,7 @@ bool Crawler::FetchNextPage()
   if (WIFSIGNALED(result) &&
       (WTERMSIG(result) == SIGINT || WTERMSIG(result) == SIGQUIT))
   {
-    return false;
+    return 2;
   }
   // decode value that was returned by system() call
   result = WEXITSTATUS(result);
@@ -45,16 +50,14 @@ bool Crawler::FetchNextPage()
     std::cerr << "\033[1;31mFailed to fetch page " <<
       link << "\033[0m" << std::endl;
   }
-  if (result != 0 && result != 8)
-    // 8 means server issued an error response (like 404) and we should
-    // probably just ignore it
+  if (result != 0)
   {
-    return false;
+    return 1;
   }
   download_queue_.container.pop_front();
 
   GetLinks(filename);
-  return true;
+  return 0;
 }
 
 void Crawler::GetLinks(const std::string& filename)
@@ -137,7 +140,6 @@ void Crawler::Crawl(const std::string& start_page)
     download_queue_.container.push_back(start_page);
     visited_links_.container.insert(start_page);
   }
-  while (FetchNextPage())
-  {
-  }
+  while (FetchNextPage() <= 1)
+  { }
 }

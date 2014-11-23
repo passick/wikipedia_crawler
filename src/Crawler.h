@@ -23,7 +23,7 @@ class Crawler
   std::vector<char> banned_symbols_;
 
   std::string GenerateFileName();
-  bool FetchNextPage();
+  int FetchNextPage();
   void GetLinks(const std::string& filename);
 
  public:
