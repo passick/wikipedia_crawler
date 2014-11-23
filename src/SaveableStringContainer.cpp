@@ -11,13 +11,13 @@ SaveableStringContainer<T>::SaveableStringContainer(
   filename_(filename)
 {
   if (filename_ != "")
-    Load(filename_);
+    Load();
 }
 
 template <class T>
-void SaveableStringContainer<T>::Load(const std::string& load_from)
+void SaveableStringContainer<T>::Load()
 {
-  std::ifstream file(load_from);
+  std::ifstream file(filename_);
   if (!file)
   {
     return;

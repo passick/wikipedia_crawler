@@ -10,7 +10,7 @@ class SaveableStringContainer
  public:
   T container;
   SaveableStringContainer(const std::string& filename);
-  void Load(const std::string& load_from);
+  void Load();
   void Save();
   ~SaveableStringContainer();
 };
