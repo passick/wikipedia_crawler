@@ -7,7 +7,7 @@
 
 template <class T>
 SaveableStringContainer<T>::SaveableStringContainer(
-    const std::string& filename = "") :
+    const std::string& filename) :
   filename_(filename)
 {
   if (filename_ != "")
