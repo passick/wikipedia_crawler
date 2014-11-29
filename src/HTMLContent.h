@@ -15,6 +15,8 @@ class HTMLContent
   HTMLContent();
   HTMLContent(const std::string& parse_from,
       int start_index, int *ended_at = NULL);
+  std::vector<std::string>& text();
+  std::vector<HTMLTag>& tags();
 };
 
 #endif

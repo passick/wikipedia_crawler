@@ -38,3 +38,13 @@ HTMLContent::HTMLContent(const std::string& parse_from,
     *ended_at = index;
   }
 }
+
+std::vector<std::string>& HTMLContent::text()
+{
+  return text_;
+}
+
+std::vector<HTMLTag>& HTMLContent::tags()
+{
+  return tags_;
+}

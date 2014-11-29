@@ -181,3 +181,21 @@ HTMLTag& HTMLTag::operator=(const HTMLTag& tag)
   }
   return *this;
 }
+
+std::string HTMLTag::get_text()
+{
+  std::string result;
+  if (!content_)
+  {
+    return "";
+  }
+  for (int i = 0; i < content_->text().size(); ++i)
+  {
+    result += content_->text()[i];
+    if (i < content_->tags().size())
+    {
+      result += content_->tags()[i].get_text();
+    }
+  }
+  return result;
+}

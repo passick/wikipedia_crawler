@@ -30,6 +30,8 @@ class HTMLTag
       int start_index, int *ended_at);
   ~HTMLTag();
   HTMLTag& operator=(const HTMLTag& tag);
+
+  std::string get_text();
 };
 
 #endif
