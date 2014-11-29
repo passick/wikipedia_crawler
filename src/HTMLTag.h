@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 class HTMLContent;
 
@@ -15,12 +17,17 @@ class HTMLTag
     std::string value_;
 
     bool is_char_legal(char ch);
+
    public:
     Attribute(const std::string& parse_from,
         int start_index, int *ended_at);
+    const std::string& name() const;
+    const std::string& value() const;
   };
   std::string name_;
   std::vector<Attribute> attributes_;
+  std::unordered_map<std::string, std::unordered_set<std::string> >
+    attributes_map_;
   HTMLContent *content_;
 
  public:
@@ -32,6 +39,9 @@ class HTMLTag
   HTMLTag& operator=(const HTMLTag& tag);
 
   std::string get_text();
+  HTMLTag* get_descendant(
+      const std::unordered_map<std::string, std::unordered_set<std::string> >&
+        required_properties) const;
 };
 
 #endif

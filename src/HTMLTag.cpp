@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "HTMLTag.h"
 #include "HTMLContent.h"
@@ -84,6 +86,16 @@ HTMLTag::Attribute::Attribute(const std::string& parse_from,
   }
 }
 
+const std::string& HTMLTag::Attribute::name() const
+{
+  return name_;
+}
+
+const std::string& HTMLTag::Attribute::value() const
+{
+  return value_;
+}
+
 HTMLTag::HTMLTag()
 {
   content_ = nullptr;
@@ -134,7 +146,9 @@ HTMLTag::HTMLTag(const std::string& parse_from, int start_index, int *ended_at =
   while (index < parse_from.length() &&
       parse_from[index] != '>' && parse_from[index] != '/')
   {
-    attributes_.push_back(Attribute(parse_from, index, &index));
+    HTMLTag::Attribute attribute = Attribute(parse_from, index, &index);
+    attributes_.push_back(attribute);
+    attributes_map_[attribute.name()].insert(attribute.value());
   }
   if (index >= parse_from.length() || parse_from[index] == '/')
   {
@@ -174,6 +188,7 @@ HTMLTag& HTMLTag::operator=(const HTMLTag& tag)
   content_ = nullptr;
   name_ = tag.name_;
   attributes_ = tag.attributes_;
+  attributes_map_ = tag.attributes_map_;
   if (tag.content_ != nullptr)
   {
     content_ = new HTMLContent;
@@ -198,4 +213,72 @@ std::string HTMLTag::get_text()
     }
   }
   return result;
+}
+
+// Return direct descendant with required properties.
+//
+// Returned value (if it is not nullptr) will have for each property
+// at least one attribute that matches it.
+//
+// Keys with special meanings:
+// __name__ : name of required tag.
+HTMLTag* HTMLTag::get_descendant(
+    const std::unordered_map<std::string, std::unordered_set<std::string> >&
+      required_properties) const
+{
+  if (!content_)
+  {
+    return nullptr;
+  }
+  for (HTMLTag& tag : content_->tags())
+  {
+    bool tag_fits = true;
+    for (auto& property : required_properties)
+    {
+      std::string property_name = property.first;
+      const std::unordered_set<std::string>& possible_values = property.second;
+      if (property_name == "__name__")
+      {
+        tag_fits = false;
+        for (const std::string& name : possible_values)
+        {
+          if (name == tag.name_)
+          {
+            tag_fits = true;
+            break;
+          }
+        }
+        if (tag_fits)
+        {
+          continue;
+        }
+        else
+        {
+          break;
+        }
+      }
+      const std::unordered_set<std::string>& existing_values =
+        (attributes_map_.count(property_name) ?
+         attributes_map_.at(property_name) :
+         std::unordered_set<std::string>());
+      tag_fits = false;
+      for (const std::string& value : possible_values)
+      {
+        if (existing_values.count(value))
+        {
+          tag_fits = true;
+          break;
+        }
+      }
+      if (!tag_fits)
+      {
+        break;
+      }
+    }
+    if (tag_fits)
+    {
+      return &tag;
+    }
+  }
+  return nullptr;
 }

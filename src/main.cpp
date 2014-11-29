@@ -20,8 +20,10 @@ int main()
     content.push_back('\n');
   }
   HTMLContent yahoo(content, 0);
-  std::string text = yahoo.tags()[1].get_text();
-  std::cout << text << std::endl;
+  HTMLTag tag = yahoo.tags()[1];
+  HTMLTag *head = tag.get_descendant({{"__name__", {"head"}}});
+  //std::string text = yahoo.tags()[1].get_text();
+  //std::cout << text << std::endl;
 
   return 0;
 }
