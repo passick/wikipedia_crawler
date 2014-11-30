@@ -3,6 +3,7 @@
 
 #include "Crawler.h"
 #include "HTMLContent.h"
+#include "WikiPage.h"
 
 int main()
 {
@@ -21,16 +22,9 @@ int main()
   }
   HTMLContent yahoo(content, 0);
   HTMLTag tag = yahoo.tags()[1];
-  const HTMLTag *body2 = HTMLTag::traverse_path(tag, {
-      { { "__name__", {"body"} } },
-      { { "id", {"content"} } },
-      { { "id", {"bodyContent"} } },
-      { { "id", {"mw-content-text"} } }
-      });
-  std::cout << body2->get_text() << std::endl;
+  WikiPage main_page(tag);
 
-  //std::string text = yahoo.tags()[1].get_text();
-  //std::cout << text << std::endl;
+  std::cout << main_page.text() << ' ' << main_page.title() << std::endl;
 
   return 0;
 }
