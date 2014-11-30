@@ -10,6 +10,7 @@ class HTMLContent;
 
 class HTMLTag
 {
+ public:
   class Attribute
   {
     static const std::string illegal_characters;
@@ -24,11 +25,17 @@ class HTMLTag
     const std::string& name() const;
     const std::string& value() const;
   };
+
+ private:
   std::string name_;
   std::vector<Attribute> attributes_;
   std::unordered_map<std::string, std::unordered_set<std::string> >
     attributes_map_;
   HTMLContent *content_;
+
+  bool matches_properties(
+      const std::unordered_map<std::string, std::unordered_set<std::string> >&
+        properties) const;
 
  public:
   HTMLTag();
@@ -38,10 +45,17 @@ class HTMLTag
   ~HTMLTag();
   HTMLTag& operator=(const HTMLTag& tag);
 
+  const std::string& name();
+  const std::vector<HTMLTag*> direct_descendant_tags() const;
+  const Attribute* get_attribute(const std::string& name) const;
+
   std::string get_text() const;
   HTMLTag* get_descendant(
       const std::unordered_map<std::string, std::unordered_set<std::string> >&
         required_properties) const;
+  std::vector<HTMLTag*> get_all_descendants(
+    const std::unordered_map<std::string, std::unordered_set<std::string> >&
+      required_properties) const;
 
   static const HTMLTag* traverse_path(
       const HTMLTag& start,

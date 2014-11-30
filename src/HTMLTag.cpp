@@ -197,6 +197,77 @@ HTMLTag& HTMLTag::operator=(const HTMLTag& tag)
   return *this;
 }
 
+const std::vector<HTMLTag*> HTMLTag::direct_descendant_tags() const
+{
+  if (!content_)
+  {
+    return std::vector<HTMLTag*>();
+  }
+  return content_->tags();
+}
+
+const HTMLTag::Attribute *HTMLTag::get_attribute(const std::string& name) const
+{
+  for (const HTMLTag::Attribute& attribute : attributes_)
+  {
+    if (attribute.name() == name)
+    {
+      return &attribute;
+    }
+  }
+  return nullptr;
+}
+
+bool HTMLTag::matches_properties(
+      const std::unordered_map<std::string, std::unordered_set<std::string> >&
+        properties) const
+{
+  bool tag_matches = true;
+  for (auto& property : properties)
+  {
+    std::string property_name = property.first;
+    const std::unordered_set<std::string>& possible_values = property.second;
+    if (property_name == "__name__")
+    {
+      tag_matches = false;
+      for (const std::string& name : possible_values)
+      {
+        if (name == this->name_)
+        {
+          tag_matches = true;
+          break;
+        }
+      }
+      if (tag_matches)
+      {
+        continue;
+      }
+      else
+      {
+        break;
+      }
+    }
+    const std::unordered_set<std::string>& existing_values =
+      (this->attributes_map_.count(property_name) ?
+       this->attributes_map_.at(property_name) :
+       std::unordered_set<std::string>());
+    tag_matches = false;
+    for (const std::string& value : possible_values)
+    {
+      if (existing_values.count(value))
+      {
+        tag_matches = true;
+        break;
+      }
+    }
+    if (!tag_matches)
+    {
+      break;
+    }
+  }
+  return tag_matches;
+}
+
 std::string HTMLTag::get_text() const
 {
   std::string result;
@@ -209,7 +280,7 @@ std::string HTMLTag::get_text() const
     result += content_->text()[i];
     if (i < content_->tags().size())
     {
-      result += content_->tags()[i].get_text();
+      result += content_->tags()[i]->get_text();
     }
   }
   return result;
@@ -230,57 +301,35 @@ HTMLTag* HTMLTag::get_descendant(
   {
     return nullptr;
   }
-  for (HTMLTag& tag : content_->tags())
+  for (HTMLTag *tag : content_->tags())
   {
-    bool tag_fits = true;
-    for (auto& property : required_properties)
+    if (tag->matches_properties(required_properties))
     {
-      std::string property_name = property.first;
-      const std::unordered_set<std::string>& possible_values = property.second;
-      if (property_name == "__name__")
-      {
-        tag_fits = false;
-        for (const std::string& name : possible_values)
-        {
-          if (name == tag.name_)
-          {
-            tag_fits = true;
-            break;
-          }
-        }
-        if (tag_fits)
-        {
-          continue;
-        }
-        else
-        {
-          break;
-        }
-      }
-      const std::unordered_set<std::string>& existing_values =
-        (tag.attributes_map_.count(property_name) ?
-         tag.attributes_map_.at(property_name) :
-         std::unordered_set<std::string>());
-      tag_fits = false;
-      for (const std::string& value : possible_values)
-      {
-        if (existing_values.count(value))
-        {
-          tag_fits = true;
-          break;
-        }
-      }
-      if (!tag_fits)
-      {
-        break;
-      }
-    }
-    if (tag_fits)
-    {
-      return &tag;
+      return tag;
     }
   }
   return nullptr;
+}
+
+// Finds all (not only direct) descendant tags matching given properties.
+std::vector<HTMLTag*> HTMLTag::get_all_descendants(
+    const std::unordered_map<std::string, std::unordered_set<std::string> >&
+      required_properties) const
+{
+  std::vector<HTMLTag*> result;
+  for (HTMLTag* descendant : direct_descendant_tags())
+  {
+    if (descendant->matches_properties(required_properties))
+    {
+      result.push_back(descendant);
+    }
+    for (HTMLTag* matching_descendant :
+        descendant->get_all_descendants(required_properties))
+    {
+      result.push_back(matching_descendant);
+    }
+  }
+  return result;
 }
 
 const HTMLTag* HTMLTag::traverse_path(

@@ -19,6 +19,20 @@ WikiPage::WikiPage(HTMLTag& tag)
       { { "id", {"mw-content-text"} } }
       });
   text_ = text_tag->get_text();
+  std::vector<HTMLTag*> all_links =
+    text_tag->get_all_descendants({ { "__name__", {"a"} } });
+  for (HTMLTag* link : all_links)
+  {
+    const HTMLTag::Attribute *attribute = link->get_attribute("href");
+    if (!attribute)
+    {
+      continue;
+    }
+    if (!attribute->value().compare(0, 5, "/wiki"))
+    {
+      links_.push_back(attribute->value());
+    }
+  }
 }
 
 const std::string& WikiPage::title()
@@ -29,4 +43,9 @@ const std::string& WikiPage::title()
 const std::string& WikiPage::text()
 {
   return text_;
+}
+
+const std::vector<std::string>& WikiPage::links()
+{
+  return links_;
 }

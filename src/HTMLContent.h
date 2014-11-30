@@ -6,17 +6,25 @@
 
 #include "HTMLTag.h"
 
+class HTMLTag;
+
 class HTMLContent
 {
   std::vector<std::string> text_;
-  std::vector<HTMLTag> tags_;
+  std::vector<HTMLTag*> tags_;
 
  public:
   HTMLContent();
+  HTMLContent(const HTMLContent& content);
   HTMLContent(const std::string& parse_from,
       int start_index, int *ended_at = NULL);
-  std::vector<std::string>& text();
-  std::vector<HTMLTag>& tags();
+
+  ~HTMLContent();
+
+  HTMLContent& operator=(const HTMLContent& content);
+
+  const std::vector<std::string>& text() const;
+  const std::vector<HTMLTag*>& tags() const;
 };
 
 #endif

@@ -21,10 +21,12 @@ int main()
     content.push_back('\n');
   }
   HTMLContent yahoo(content, 0);
-  HTMLTag tag = yahoo.tags()[1];
-  WikiPage main_page(tag);
-
-  std::cout << main_page.text() << ' ' << main_page.title() << std::endl;
-
+  HTMLTag *tag = yahoo.tags()[1];
+  WikiPage main_page(*tag);
+  for (auto link : main_page.links())
+  {
+    std::cout << link << std::endl;
+  }
+  
   return 0;
 }
