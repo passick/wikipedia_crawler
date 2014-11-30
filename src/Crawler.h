@@ -24,7 +24,8 @@ class Crawler
 
   std::string GenerateFileName();
   int FetchNextPage();
-  void GetLinks(const std::string& filename);
+  void ParsePage(const std::string& link, const std::string& filename);
+  bool AddLink(const std::string& link);
 
  public:
   Crawler(const std::string& data_directory,

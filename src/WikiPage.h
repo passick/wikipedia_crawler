@@ -13,10 +13,14 @@ class WikiPage
   std::vector<std::string> links_;
 
  public:
-  WikiPage(HTMLTag& tag);
+  WikiPage(const HTMLTag& tag);
+
   const std::string& title();
   const std::string& text();
   const std::vector<std::string>& links();
+
+  static bool is_link_ok(const std::string& link);
+  static std::string transform_link(const std::string& link);
 };
 
 #endif

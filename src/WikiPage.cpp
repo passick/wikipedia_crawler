@@ -4,7 +4,7 @@
 #include "HTMLTag.h"
 #include "WikiPage.h"
 
-WikiPage::WikiPage(HTMLTag& tag)
+WikiPage::WikiPage(const HTMLTag& tag)
 {
   const HTMLTag *content_tag = HTMLTag::traverse_path(tag, {
       { { "__name__", {"body"} } },
@@ -28,9 +28,9 @@ WikiPage::WikiPage(HTMLTag& tag)
     {
       continue;
     }
-    if (!attribute->value().compare(0, 5, "/wiki"))
+    if (is_link_ok(attribute->value()))
     {
-      links_.push_back(attribute->value());
+      links_.push_back(transform_link(attribute->value()));
     }
   }
 }
@@ -48,4 +48,36 @@ const std::string& WikiPage::text()
 const std::vector<std::string>& WikiPage::links()
 {
   return links_;
+}
+
+bool WikiPage::is_link_ok(const std::string& link)
+{
+  // If link does not begin with /wiki, we are ignoring it
+  std::string wiki = "/wiki";
+  if (link.compare(0, wiki.length(), wiki))
+  {
+    return false;
+  }
+  size_t colon_index = link.find(':');
+  if (colon_index != std::string::npos)
+  {
+    std::string allowed_namespace = "Category";
+    if (!link.compare(wiki.length(),
+          allowed_namespace.length(), allowed_namespace))
+    {
+      return true;
+    }
+    return false;
+  }
+  return true;
+}
+
+std::string WikiPage::transform_link(const std::string& link)
+{
+  size_t hash_index = link.find('#');
+  if (hash_index == std::string::npos)
+  {
+    return link;
+  }
+  return link.substr(0, hash_index + 1);
 }

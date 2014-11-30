@@ -11,6 +11,9 @@
 
 #include "Crawler.h"
 #include "Downloader.h"
+#include "HTMLContent.h"
+#include "HTMLTag.h"
+#include "WikiPage.h"
 
 std::string Crawler::GenerateFileName()
 {
@@ -30,6 +33,7 @@ int Crawler::FetchNextPage()
     return 3;
   }
   std::string link = download_queue_.container.front();
+  std::string original_link = link;
   if (link.compare(0, root_path_.length(), root_path_) != 0)
   {
     link = root_path_ + link;
@@ -58,64 +62,45 @@ int Crawler::FetchNextPage()
   }
   download_queue_.container.pop_front();
 
-  GetLinks(filename);
+  ParsePage(original_link, filename);
   return 0;
 }
 
-void Crawler::GetLinks(const std::string& filename)
+void Crawler::ParsePage(const std::string& link, const std::string& filename)
 {
   std::ifstream file(filename);
-  char ch;
-  while (file.get(ch))
+  std::string html, temp;
+  while (std::getline(file, temp))
   {
-    int current = 0;
-    while (current < link_prefix_.length() &&
-        ch == link_prefix_[current])
-    {
-      current++;
-      if (!file.get(ch))
-      {
-        break;
-      }
-    }
-    if (current != link_prefix_.length())
-    {
-      continue;
-    }
-    std::string link;
-    bool flag = true;
-    do
-    {
-      if (ch != '"')
-      {
-        link.append(1, ch);
-      }
-      if (!file.get(ch))
-      {
-        flag = false;
-        break;
-      }
-      for (char banned_symbol : banned_symbols_)
-      {
-        if (ch == banned_symbol)
-        {
-          flag = false;
-        }
-      }
-    } while (ch != '"');
-    if (!flag ||
-        link.compare(0,
-          required_link_prefix_.length(),
-          required_link_prefix_) != 0)
-    {
-      continue;
-    }
-    if (visited_links_.container.count(link) == 0)
-    {
-      visited_links_.container.insert(link);
-      download_queue_.container.push_back(link);
-    }
+    html += temp + '\n';
   }
+  WikiPage page = WikiPage(*HTMLContent(html, 0).tags()[1]);
+  std::ofstream article_text_file(filename + ".text");
+  article_text_file << link << std::endl << page.text();
+  std::ofstream found_links_file(filename + ".links");
+  found_links_file << link << std::endl << std::endl;
+  for (const std::string& found_link : page.links())
+  {
+    found_links_file << found_link << std::endl;
+    AddLink(found_link);
+  }
+  if (article_text_file.good() && found_links_file.good())
+  {
+    file.close();
+    std::remove(filename.c_str());
+  }
+}
+
+bool Crawler::AddLink(const std::string& link)
+{
+  if (visited_links_.container.count(link) != 0)
+  {
+    return false;
+  }
+  visited_links_.container.insert(link);
+  download_queue_.container.push_back(link);
+
+  return true;
 }
 
 Crawler::Crawler(const std::string& data_directory,
