@@ -19,10 +19,27 @@ WikiPage::WikiPage(const HTMLTag& tag)
       { { "id", {"mw-content-text"} } }
       });
   text_ = text_tag->get_text();
-  std::vector<HTMLTag*> all_links =
+  std::vector<HTMLTag*> all_text_links =
     text_tag->get_all_descendants({ { "__name__", {"a"} } });
-  for (HTMLTag* link : all_links)
+  const HTMLTag *categories_tag = HTMLTag::traverse_path(*content_tag, {
+      { { "id", {"bodyContent"} } },
+      { { "id", {"catlinks"} } }
+      });
+  std::vector<HTMLTag*> all_categories_links =
+    categories_tag->get_all_descendants({ { "__name__", {"a"} } });
+  for (size_t index = 0;
+      index < all_text_links.size() + all_categories_links.size();
+      ++index)
   {
+    HTMLTag *link;
+    if (index < all_text_links.size())
+    {
+      link = all_text_links[index];
+    }
+    else
+    {
+      link = all_categories_links[index - all_text_links.size()];
+    }
     const HTMLTag::Attribute *attribute = link->get_attribute("href");
     if (!attribute)
     {
@@ -53,7 +70,7 @@ const std::vector<std::string>& WikiPage::links()
 bool WikiPage::is_link_ok(const std::string& link)
 {
   // If link does not begin with /wiki, we are ignoring it
-  std::string wiki = "/wiki";
+  std::string wiki = "/wiki/";
   if (link.compare(0, wiki.length(), wiki))
   {
     return false;
@@ -79,5 +96,5 @@ std::string WikiPage::transform_link(const std::string& link)
   {
     return link;
   }
-  return link.substr(0, hash_index + 1);
+  return link.substr(0, hash_index);
 }
