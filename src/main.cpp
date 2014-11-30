@@ -21,7 +21,14 @@ int main()
   }
   HTMLContent yahoo(content, 0);
   HTMLTag tag = yahoo.tags()[1];
-  HTMLTag *head = tag.get_descendant({{"__name__", {"head"}}});
+  const HTMLTag *body2 = HTMLTag::traverse_path(tag, {
+      { { "__name__", {"body"} } },
+      { { "id", {"content"} } },
+      { { "id", {"bodyContent"} } },
+      { { "id", {"mw-content-text"} } }
+      });
+  std::cout << body2->get_text() << std::endl;
+
   //std::string text = yahoo.tags()[1].get_text();
   //std::cout << text << std::endl;
 

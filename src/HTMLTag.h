@@ -38,10 +38,15 @@ class HTMLTag
   ~HTMLTag();
   HTMLTag& operator=(const HTMLTag& tag);
 
-  std::string get_text();
+  std::string get_text() const;
   HTMLTag* get_descendant(
       const std::unordered_map<std::string, std::unordered_set<std::string> >&
         required_properties) const;
+
+  static const HTMLTag* traverse_path(
+      const HTMLTag& start,
+      std::initializer_list<std::unordered_map<std::string,
+          std::unordered_set<std::string> > > path);
 };
 
 #endif

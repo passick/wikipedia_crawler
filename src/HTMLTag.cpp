@@ -197,7 +197,7 @@ HTMLTag& HTMLTag::operator=(const HTMLTag& tag)
   return *this;
 }
 
-std::string HTMLTag::get_text()
+std::string HTMLTag::get_text() const
 {
   std::string result;
   if (!content_)
@@ -258,8 +258,8 @@ HTMLTag* HTMLTag::get_descendant(
         }
       }
       const std::unordered_set<std::string>& existing_values =
-        (attributes_map_.count(property_name) ?
-         attributes_map_.at(property_name) :
+        (tag.attributes_map_.count(property_name) ?
+         tag.attributes_map_.at(property_name) :
          std::unordered_set<std::string>());
       tag_fits = false;
       for (const std::string& value : possible_values)
@@ -281,4 +281,21 @@ HTMLTag* HTMLTag::get_descendant(
     }
   }
   return nullptr;
+}
+
+const HTMLTag* HTMLTag::traverse_path(
+    const HTMLTag& start,
+    std::initializer_list<std::unordered_map<std::string,
+        std::unordered_set<std::string> > > path)
+{
+  const HTMLTag *current = &start;
+  for (auto next_tag : path)
+  {
+    current = current->get_descendant(next_tag);
+    if (!current)
+    {
+      break;
+    }
+  }
+  return current;
 }
