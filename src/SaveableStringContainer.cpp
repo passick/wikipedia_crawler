@@ -25,7 +25,7 @@ void SaveableStringContainer<T>::Load()
   std::string line;
   while (std::getline(file, line))
   {
-    container.insert(container.end(), line);
+    container.insert(container.end(), (typename T::value_type)(line));
   }
 }
 

@@ -3,7 +3,8 @@ CPPFLAGS=--std=c++11
 
 SRCS=src/main.cpp src/Crawler.cpp src/Downloader.cpp \
 	 src/SaveableStringContainer.cpp src/HTMLContent.cpp src/HTMLTag.cpp \
-	 src/WikiPage.cpp
+	 src/WikiPage.cpp src/Indexer.cpp
+
 OBJS=$(subst .cpp,.o,$(SRCS))
 EXECUTABLE=crawler
 
@@ -25,6 +26,7 @@ src/SaveableStringContainer.o: src/SaveableStringContainer.h \
 src/HTMLContent.o: src/HTMLContent.h src/HTMLContent.cpp src/HTMLTag.h
 src/HTMLTag.o: src/HTMLTag.h src/HTMLTag.cpp src/HTMLContent.h
 src/WikiPage.o: src/WikiPage.h src/WikiPage.cpp src/HTMLContent.h src/HTMLTag.h
+src/Indexer.o: src/Indexer.h src/Indexer.cpp src/SaveableStringContainer.h
 
 clean:
 	  $(RM) $(OBJS) $(EXECUTABLE)
