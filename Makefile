@@ -18,6 +18,7 @@ debug: all
 $(EXECUTABLE): $(OBJS)
 	  $(CXX) $(CPPFLAGS) $(OBJS) -o $(EXECUTABLE) $(LDFLAGS)
 
+src/main.o: src/Crawler.h src/WikiPage.h src/Indexer.h
 src/Crawler.o: src/Crawler.h src/Crawler.cpp src/Downloader.h \
   src/HTMLContent.h src/HTMLTag.h src/WikiPage.h
 src/Downloader.o: src/Downloader.h src/Downloader.cpp
