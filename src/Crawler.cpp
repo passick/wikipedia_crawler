@@ -62,7 +62,10 @@ int Crawler::FetchNextPage()
   }
   download_queue_.container.pop_front();
 
-  ParsePage(original_link, filename);
+  if (result == 0)
+  {
+    ParsePage(original_link, filename);
+  }
   return 0;
 }
 
