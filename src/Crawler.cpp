@@ -17,7 +17,7 @@
 #include "HTMLTag.h"
 #include "WikiPage.h"
 
-bool Crawler::program_terminated = false;
+volatile sig_atomic_t Crawler::program_terminated = false;
 
 std::string Crawler::GenerateFileName()
 {

@@ -1,6 +1,8 @@
 #ifndef CRAWLER_H
 #define CRAWLER_H
 
+#include <csignal>
+
 #include <unordered_set>
 #include <string>
 #include <deque>
@@ -22,7 +24,7 @@ class Crawler
 
   std::vector<char> banned_symbols_;
 
-  static bool program_terminated;
+  volatile static sig_atomic_t program_terminated;
 
   std::string GenerateFileName();
   int FetchNextPage();
