@@ -22,10 +22,15 @@ class Crawler
 
   std::vector<char> banned_symbols_;
 
+  static bool program_terminated;
+
   std::string GenerateFileName();
   int FetchNextPage();
   void ParsePage(const std::string& link, const std::string& filename);
   bool AddLink(const std::string& link);
+  void SaveState();
+
+  static void StopCrawler(int signal);
 
  public:
   Crawler(const std::string& data_directory,

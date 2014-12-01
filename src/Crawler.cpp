@@ -1,6 +1,8 @@
+#include <csignal>
 #include <cstdlib>
 #include <ctime>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include <fstream>
 #include <set>
@@ -14,6 +16,8 @@
 #include "HTMLContent.h"
 #include "HTMLTag.h"
 #include "WikiPage.h"
+
+bool Crawler::program_terminated = false;
 
 std::string Crawler::GenerateFileName()
 {
@@ -43,8 +47,10 @@ int Crawler::FetchNextPage()
   int result = Downloader::DownloadPage(link, filename);
   // check if program got signal to quit
   if (WIFSIGNALED(result) &&
-      (WTERMSIG(result) == SIGINT || WTERMSIG(result) == SIGQUIT))
+      (WTERMSIG(result) == SIGINT || WTERMSIG(result) == SIGQUIT ||
+       WTERMSIG(result) == SIGTERM))
   {
+    SaveState();
     return 2;
   }
   // decode value that was returned by system() call
@@ -106,6 +112,17 @@ bool Crawler::AddLink(const std::string& link)
   return true;
 }
 
+void Crawler::SaveState()
+{
+  visited_links_.Save();
+  download_queue_.Save();
+}
+
+void Crawler::StopCrawler(int signal)
+{
+  program_terminated = true;
+}
+
 Crawler::Crawler(const std::string& data_directory,
     const std::string& root_path,
     const std::string& required_link_prefix,
@@ -130,6 +147,15 @@ void Crawler::Crawl(const std::string& start_page)
     download_queue_.container.push_back(start_page);
     visited_links_.container.insert(start_page);
   }
-  while (FetchNextPage() <= 1)
+
+  std::signal(SIGINT, StopCrawler);
+  std::signal(SIGTERM, StopCrawler);
+  std::signal(SIGQUIT, StopCrawler);
+
+  while (!program_terminated && FetchNextPage() <= 1)
   { }
+
+  std::signal(SIGINT, SIG_DFL);
+  std::signal(SIGTERM, SIG_DFL);
+  std::signal(SIGQUIT, SIG_DFL);
 }
