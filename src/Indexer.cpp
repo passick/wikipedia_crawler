@@ -8,6 +8,7 @@
 #include "Indexer.h"
 
 volatile sig_atomic_t Indexer::indexer_terminated = false;
+const int Indexer::not_saved_indexes_limit_ = 5;
 
 FilenameAndLink::FilenameAndLink()
 { }
@@ -125,6 +126,11 @@ void Indexer::StartIndexing()
     IndexFile(filename);
   }
 
+  for (auto word_indexes_pair : not_saved_indexes_)
+  {
+    SaveWordIndex(word_indexes_pair.first, false);
+  }
+
   std::signal(SIGINT, SIG_DFL);
   std::signal(SIGTERM, SIG_DFL);
   std::signal(SIGQUIT, SIG_DFL);
@@ -135,13 +141,31 @@ void Indexer::AddWordOccurrence(
     const std::string& filename,
     const std::string& link)
 {
+  not_saved_indexes_[word].push_back(FilenameAndLink(filename, link));
+  if (not_saved_indexes_[word].size() >= not_saved_indexes_limit_)
+  {
+    SaveWordIndex(word);
+  }
+}
+
+void Indexer::SaveWordIndex(
+    const std::string& word,
+    bool delete_from_not_saved)
+{
   std::ofstream word_file(index_directory_ + word,
       std::ofstream::out | std::ofstream::app);
   if (!word_file.good())
   {
     return;
   }
-  word_file << FilenameAndLink(filename, link);
+  for (const FilenameAndLink& index : not_saved_indexes_[word])
+  {
+    word_file << index;
+  }
+  if (delete_from_not_saved)
+  {
+    not_saved_indexes_.erase(word);
+  }
 }
 
 void Indexer::IndexFile(const std::string& filename)

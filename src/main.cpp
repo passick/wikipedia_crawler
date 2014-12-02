@@ -3,7 +3,6 @@
 
 #include "Crawler.h"
 #include "WikiPage.h"
-#include "Indexer.h"
 
 int main()
 {
@@ -13,10 +12,6 @@ int main()
       "/wiki",
       banned_symbols);
   wiki_crawler.Crawl("/wiki/Main_Page");
-  //Indexer wiki_indexer("./data2/",
-      //"./index/",
-      //"./index/indexed_files");
-  //wiki_indexer.StartIndexing();
   
   return 0;
 }
