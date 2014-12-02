@@ -13,20 +13,24 @@ WikiPage::WikiPage(const HTMLTag& tag)
   const HTMLTag *title_tag = HTMLTag::traverse_path(*content_tag, {
       { { "id", {"firstHeading"} } }
       });
-  title_ = title_tag->get_text();
+  title_ = (title_tag ? title_tag->get_text() : "");
   const HTMLTag *text_tag = HTMLTag::traverse_path(*content_tag, {
       { { "id", {"bodyContent"} } },
       { { "id", {"mw-content-text"} } }
       });
-  text_ = text_tag->get_text();
+  text_ = (text_tag ? text_tag->get_text() : "");
   std::vector<HTMLTag*> all_text_links =
-    text_tag->get_all_descendants({ { "__name__", {"a"} } });
+    (text_tag ?
+     text_tag->get_all_descendants({ { "__name__", {"a"} } }) :
+     std::vector<HTMLTag*>());
   const HTMLTag *categories_tag = HTMLTag::traverse_path(*content_tag, {
       { { "id", {"bodyContent"} } },
       { { "id", {"catlinks"} } }
       });
   std::vector<HTMLTag*> all_categories_links =
-    categories_tag->get_all_descendants({ { "__name__", {"a"} } });
+    (categories_tag ?
+     categories_tag->get_all_descendants({ { "__name__", {"a"} } }) :
+     std::vector<HTMLTag*>());
   for (size_t index = 0;
       index < all_text_links.size() + all_categories_links.size();
       ++index)
@@ -39,6 +43,10 @@ WikiPage::WikiPage(const HTMLTag& tag)
     else
     {
       link = all_categories_links[index - all_text_links.size()];
+    }
+    if (!link)
+    {
+      continue;
     }
     const HTMLTag::Attribute *attribute = link->get_attribute("href");
     if (!attribute)
