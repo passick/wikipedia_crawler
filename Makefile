@@ -1,25 +1,34 @@
 CXX=clang++
 CPPFLAGS=--std=c++11
 
-SRCS=src/main.cpp src/Crawler.cpp src/Downloader.cpp \
-	 src/SaveableStringContainer.cpp src/HTMLContent.cpp src/HTMLTag.cpp \
-	 src/WikiPage.cpp
+COMMON_SRCS=
+CRAWLER_SRCS=src/main.cpp src/Crawler.cpp src/Downloader.cpp \
+			 src/SaveableStringContainer.cpp src/HTMLContent.cpp src/HTMLTag.cpp \
+			 src/WikiPage.cpp
+INDEXER_SRCS=src/IndexerUtility.cpp src/Indexer.cpp
 
-OBJS=$(subst .cpp,.o,$(SRCS))
-EXECUTABLE=crawler
+COMMON_OBJS=$(subst .cpp,.o,$(COMMON_SRCS))
+CRAWLER_OBJS=$(subst .cpp,.o,$(CRAWLER_SRCS))
+INDEXER_OBJS=$(subst .cpp,.o,$(INDEXER_SRCS))
 
-LDFLAGS=
+CRAWLER_EXECUTABLE=crawler
+INDEXER_EXECUTABLE=indexer
 
-all: $(SRCS) $(EXECUTABLE) indexer
+COMMON_LDFLAGS=
+CRAWLER_LDFLAGS=
+INDEXER_LDFLAGS=
+
+all: $(COMMON_SRCS) $(CRAWLER_SRCS) $(INDEXER_SRCS) \
+  $(CRAWLER_EXECUTABLE) $(INDEXER_EXECUTABLE)
 
 debug: CXX += -DDEBUG -g
 debug: all
 
-$(EXECUTABLE): $(OBJS)
-	  $(CXX) $(CPPFLAGS) $(OBJS) -o $(EXECUTABLE) $(LDFLAGS)
+$(CRAWLER_EXECUTABLE): $(COMMON_OBJS) $(CRAWLER_OBJS)
+	  $(CXX) $(CPPFLAGS) $^ -o $@ $(COMMON_LDFLAGS) $(CRAWLER_LDFLAGS)
 
-indexer: src/IndexerUtility.o src/Indexer.o
-	  $(CXX) $(CPPFLAGS) src/IndexerUtility.o src/Indexer.o -o indexer $(LDFLAGS)
+$(INDEXER_EXECUTABLE): $(COMMON_OBJS) $(INDEXER_OBJS)
+	  $(CXX) $(CPPFLAGS) $^ -o $@ $(COMMON_LDFLAGS) $(INDEXER_LDFLAGS)
 
 src/main.o: src/Crawler.h src/WikiPage.h src/Indexer.h
 src/Crawler.o: src/Crawler.h src/Crawler.cpp src/Downloader.h \
@@ -34,4 +43,5 @@ src/Indexer.o: src/Indexer.h src/Indexer.cpp src/SaveableStringContainer.h
 src/IndexerUtility.o: src/Indexer.h
 
 clean:
-	  $(RM) $(OBJS) $(EXECUTABLE)
+	  $(RM) $(COMMON_OBJS) $(CRAWLER_OBJS) $(INDEXER_OBJS) \
+		$(CRAWLER_EXECUTABLE) $(INDEXER_EXECUTABLE)
