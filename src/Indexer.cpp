@@ -6,65 +6,17 @@
 #include <algorithm>
 
 #include "Indexer.h"
+#include "IndexerCache.h"
+#include "FilenameAndLink.h"
 
 volatile sig_atomic_t Indexer::indexer_terminated = false;
-const int Indexer::not_saved_indexes_limit_ = 5;
-
-FilenameAndLink::FilenameAndLink()
-{ }
-
-FilenameAndLink::FilenameAndLink(const std::string& string)
-{
-  size_t closing_quote_index = string.find('"', 1);
-  if (string[0] != '"' || closing_quote_index == std::string::npos)
-  {
-    return;
-  }
-  filename = string.substr(1, closing_quote_index - 1);
-  link = string.substr(closing_quote_index + 2, std::string::npos);
-}
-
-FilenameAndLink::FilenameAndLink(const std::string& filename,
-    const std::string& link) :
-  filename(filename), link(link)
-{ }
-
-bool FilenameAndLink::operator<(const FilenameAndLink& rhs) const
-{
-  return filename < rhs.filename;
-}
-
-bool FilenameAndLink::operator==(const FilenameAndLink& rhs) const
-{
-  return filename == rhs.filename;
-}
-
-std::ostream& operator<<(
-    std::ostream& stream, const FilenameAndLink& object)
-{
-  stream << "\"" << object.filename << "\" " << object.link;
-  return stream;
-}
-
-std::istream& operator>>(std::istream& stream,
-    FilenameAndLink& object)
-{
-  std::string tmp;
-  std::getline(stream, tmp);
-  object = FilenameAndLink(tmp);
-  return stream;
-}
-
-size_t std::hash<FilenameAndLink>::operator()(const FilenameAndLink& obj) const
-{
-  return std::hash<std::string>()(obj.filename);
-}
 
 Indexer::Indexer(const std::string& files_directory,
       const std::string& index_directory,
       const std::string& list_of_indexed_files) :
   files_directory_(files_directory),
-  index_directory_(index_directory)
+  index_directory_(index_directory),
+  file_cache_(index_directory)
 {
   indexed_files_ = SaveableStringContainer<
     std::unordered_set<FilenameAndLink>>(list_of_indexed_files);
@@ -126,11 +78,6 @@ void Indexer::StartIndexing()
     IndexFile(filename);
   }
 
-  for (auto word_indexes_pair : not_saved_indexes_)
-  {
-    SaveWordIndex(word_indexes_pair.first, false);
-  }
-
   std::signal(SIGINT, SIG_DFL);
   std::signal(SIGTERM, SIG_DFL);
   std::signal(SIGQUIT, SIG_DFL);
@@ -141,31 +88,7 @@ void Indexer::AddWordOccurrence(
     const std::string& filename,
     const std::string& link)
 {
-  not_saved_indexes_[word].push_back(FilenameAndLink(filename, link));
-  if (not_saved_indexes_[word].size() >= not_saved_indexes_limit_)
-  {
-    SaveWordIndex(word);
-  }
-}
-
-void Indexer::SaveWordIndex(
-    const std::string& word,
-    bool delete_from_not_saved)
-{
-  std::ofstream word_file(index_directory_ + word,
-      std::ofstream::out | std::ofstream::app);
-  if (!word_file.good())
-  {
-    return;
-  }
-  for (const FilenameAndLink& index : not_saved_indexes_[word])
-  {
-    word_file << index;
-  }
-  if (delete_from_not_saved)
-  {
-    not_saved_indexes_.erase(word);
-  }
+  file_cache_.AddToFile(word, FilenameAndLink(filename, link));
 }
 
 void Indexer::IndexFile(const std::string& filename)
