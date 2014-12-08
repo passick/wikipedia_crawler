@@ -3,11 +3,14 @@
 #include <string>
 
 #include "Indexer.h"
+#include "PageRanker.h"
 
 const int number_of_threads = 5;
 
 int main()
 {
+  PageRanker ranker("./data3/", "./data3/files_map");
+  return 0;
   Indexer wiki_indexer("./data3/",
       "./index2/",
       "./index2/indexed_files");

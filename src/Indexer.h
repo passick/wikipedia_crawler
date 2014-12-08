@@ -2,13 +2,13 @@
 #define INDEXER_H
 
 #include <csignal>
+#include <pthread.h>
 
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
 #include <ostream>
 #include <vector>
-#include <pthread.h>
 
 #include "SaveableStringContainer.h"
 #include "FilenameAndLink.h"

@@ -7,7 +7,7 @@ CRAWLER_SRCS=src/main.cpp src/Crawler.cpp src/Downloader.cpp \
 			 src/SaveableStringContainer.cpp src/HTMLContent.cpp src/HTMLTag.cpp \
 			 src/WikiPage.cpp
 INDEXER_SRCS=src/IndexerUtility.cpp src/Indexer.cpp src/IndexerCache.cpp \
-			 src/FilenameAndLink.cpp
+			 src/FilenameAndLink.cpp src/PageRanker.cpp
 
 COMMON_OBJS=$(subst .cpp,.o,$(COMMON_SRCS))
 CRAWLER_OBJS=$(subst .cpp,.o,$(CRAWLER_SRCS))
@@ -48,6 +48,8 @@ src/IndexerUtility.o: src/IndexerUtility.cpp src/Indexer.h
 src/IndexerCache.o: src/IndexerCache.h src/IndexerCache.cpp \
   src/FilenameAndLink.h
 src/FilenameAndLink.o: src/FilenameAndLink.h src/FilenameAndLink.cpp
+src/PageRanker.o: src/PageRanker.h src/PageRanker.cpp src/FilenameAndLink.h \
+  src/SaveableStringContainer.h
 
 clean:
 	  $(RM) $(COMMON_OBJS) $(CRAWLER_OBJS) $(INDEXER_OBJS) \
