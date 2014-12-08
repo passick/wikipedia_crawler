@@ -8,7 +8,7 @@
 
 #include "FilenameAndLink.h"
 
-const int changes_number_threshold = 10000;
+const int changes_number_threshold = 100000;
 
 class IndexerCache
 {

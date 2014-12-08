@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "IndexerCache.h"
 #include "FilenameAndLink.h"
@@ -32,24 +33,31 @@ void IndexerCache::SaveFiles()
   std::cout << "Saving index files" << std::endl;
   pthread_mutex_lock(&cache_mutex_);
   
-  std::unordered_map<std::string, std::ofstream> open_files;
-  
-  for (const auto& file_and_list : cache_)
+  std::map<std::string, std::vector<FilenameAndLink>> sorted_cache(
+      cache_.begin(), cache_.end());
+  std::string previous_filename = "";
+  std::ofstream file;
+  for (const auto& file_and_list : sorted_cache)
   {
     std::string filename = file_and_list.first.substr(0, 3);
-    if (open_files.count(filename) == 0)
+    if (filename != previous_filename)
     {
-      open_files[file_and_list.first].open(index_directory_ + filename,
-          std::ofstream::out | std::ofstream::app);
-      if (!open_files[file_and_list.first].good())
+      if (file.is_open())
       {
-        continue;
+        file.close();
+      }
+      file.open(index_directory_ + filename,
+          std::ofstream::out | std::ofstream::app);
+      if (!file.good())
+      {
+        throw std::runtime_error(
+            "Could not open file" + index_directory_ + filename);
       }
     }
-    open_files[filename] << file_and_list.first << ":\n";
+    file << file_and_list.first << ":\n";
     for (const auto& entry : file_and_list.second)
     {
-      open_files[filename] << entry << '\n';
+      file << entry << '\n';
     }
   }
 

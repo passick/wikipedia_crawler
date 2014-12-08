@@ -100,11 +100,13 @@ void Indexer::IndexFile(const std::string& filename)
   std::ifstream file(filename);
   if (!file.good())
   {
+    std::cerr << "Could not open " << filename << std::endl;
     return;
   }
 
   std::string link;
   std::getline(file, link);
+  std::cout << "Indexing " << link << std::endl;
   while (file.good())
   {
     std::string word;

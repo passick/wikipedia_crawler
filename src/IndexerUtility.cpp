@@ -4,7 +4,7 @@
 
 int main()
 {
-  Indexer wiki_indexer("./data2/",
+  Indexer wiki_indexer("./data3/",
       "./index/",
       "./index/indexed_files");
   wiki_indexer.StartIndexing();
