@@ -1,5 +1,6 @@
 #include <cstring>
 #include <dirent.h>
+#include <pthread.h>
 
 #include <string>
 #include <fstream>
@@ -20,6 +21,7 @@ Indexer::Indexer(const std::string& files_directory,
 {
   indexed_files_ = SaveableStringContainer<
     std::unordered_set<FilenameAndLink>>(list_of_indexed_files);
+  GetFileList();
 }
 
 void Indexer::GetFileList()
@@ -32,6 +34,7 @@ void Indexer::GetFileList()
     perror("opendir");
     return;
   }
+  pthread_mutex_lock(&file_queue_mutex_);
   while ((entry = readdir(directory)))
   {
     std::string filename(entry->d_name);
@@ -53,6 +56,7 @@ void Indexer::GetFileList()
     }
     files_in_directory_.push_back(filename);
   }
+  pthread_mutex_unlock(&file_queue_mutex_);
   closedir(directory);
 }
 
@@ -63,24 +67,24 @@ void Indexer::StopIndexer(int signal)
 
 void Indexer::StartIndexing()
 {
-  GetFileList();
-
   std::signal(SIGINT, StopIndexer);
   std::signal(SIGTERM, StopIndexer);
   std::signal(SIGQUIT, StopIndexer);
 
-  for (const std::string& filename : files_in_directory_)
-  {
-    if (indexer_terminated)
-    {
-      break;
-    }
-    IndexFile(filename);
-  }
+  while (!indexer_terminated && IndexNextFile())
+  { }
 
   std::signal(SIGINT, SIG_DFL);
   std::signal(SIGTERM, SIG_DFL);
   std::signal(SIGQUIT, SIG_DFL);
+}
+
+void *Indexer::MultithreadIndex(void *indexer_ptr)
+{
+  Indexer *indexer = static_cast<Indexer*>(indexer_ptr);
+  indexer->StartIndexing();
+
+  return NULL;
 }
 
 void Indexer::AddWordOccurrence(
@@ -121,4 +125,19 @@ void Indexer::IndexFile(const std::string& filename)
     }
   }
   indexed_files_.container.insert({filename, link});
+}
+
+bool Indexer::IndexNextFile()
+{
+  pthread_mutex_lock(&file_queue_mutex_);
+  if (files_in_directory_.empty())
+  {
+    return false;
+  }
+  std::string next_file = files_in_directory_.back();
+  files_in_directory_.pop_back();
+  pthread_mutex_unlock(&file_queue_mutex_);
+
+  IndexFile(next_file);
+  return true;
 }

@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #include <unordered_map>
-#include <vector>
+#include <set>
 
 #include "FilenameAndLink.h"
 
@@ -12,8 +12,7 @@ const int changes_number_threshold = 100000;
 
 class IndexerCache
 {
-  std::unordered_map<std::string,
-    std::vector<FilenameAndLink>> cache_;
+  std::unordered_map<std::string, std::set<FilenameAndLink>> cache_;
   std::string index_directory_;
   pthread_mutex_t cache_mutex_ = PTHREAD_MUTEX_INITIALIZER;
   int changes_count_ = 0;

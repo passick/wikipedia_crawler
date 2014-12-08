@@ -10,7 +10,6 @@ const int THREADS_NUMBER = 20;
 
 int main()
 {
-  std::vector<char> banned_symbols = { ':' };
   Crawler wiki_crawler("./data3/",
       "http://simple.wikipedia.org",
       "/wiki/Main_Page");

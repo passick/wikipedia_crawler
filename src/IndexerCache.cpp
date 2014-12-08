@@ -2,7 +2,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 #include <map>
+#include <set>
 
 #include "IndexerCache.h"
 #include "FilenameAndLink.h"
@@ -19,12 +21,18 @@ IndexerCache::~IndexerCache()
 void IndexerCache::AddToFile(const std::string& filename, const FilenameAndLink& entry)
 {
   pthread_mutex_lock(&cache_mutex_);
-  cache_[filename].push_back(entry);
+  cache_[filename].insert(entry);
   changes_count_++;
-  pthread_mutex_unlock(&cache_mutex_);
+
   if (changes_count_ > changes_number_threshold)
   {
+    changes_count_ = 0;
+    pthread_mutex_unlock(&cache_mutex_);
     SaveFiles();
+  }
+  else
+  {
+    pthread_mutex_unlock(&cache_mutex_);
   }
 }
 
@@ -33,7 +41,7 @@ void IndexerCache::SaveFiles()
   std::cout << "Saving index files" << std::endl;
   pthread_mutex_lock(&cache_mutex_);
   
-  std::map<std::string, std::vector<FilenameAndLink>> sorted_cache(
+  std::map<std::string, std::set<FilenameAndLink>> sorted_cache(
       cache_.begin(), cache_.end());
   std::string previous_filename = "";
   std::ofstream file;

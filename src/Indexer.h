@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <ostream>
 #include <vector>
+#include <pthread.h>
 
 #include "SaveableStringContainer.h"
 #include "FilenameAndLink.h"
@@ -23,6 +24,7 @@ class Indexer
   SaveableStringContainer<
     std::unordered_set<FilenameAndLink>> indexed_files_;
   volatile static sig_atomic_t indexer_terminated;
+  pthread_mutex_t file_queue_mutex_ = PTHREAD_MUTEX_INITIALIZER;
 
  public:
   Indexer(const std::string& files_directory,
@@ -37,6 +39,9 @@ class Indexer
       const std::string& filename,
       const std::string& link);
   void IndexFile(const std::string& filename);
+  bool IndexNextFile();
+
+  static void *MultithreadIndex(void *indexer_ptr);
 };
 
 #endif
