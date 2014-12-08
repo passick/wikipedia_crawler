@@ -1,9 +1,12 @@
 #include <csignal>
+#include <cmath>
 #include <dirent.h>
 
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
+#include <algorithm>
 
 #include "PageRanker.h"
 #include "FilenameAndLink.h"
@@ -23,6 +26,8 @@ PageRanker::PageRanker(
   std::signal(SIGQUIT, StopPageRanker);
 
   ScanDirectory(pages_directory);
+  probabilities_.assign(index_to_filename_.size(),
+      1.0L / (long double)index_to_filename_.size());
   BuildGraph();
 
   std::signal(SIGINT, SIG_DFL);
@@ -45,7 +50,7 @@ void PageRanker::ScanDirectory(const std::string& pages_directory)
     index_to_filename_.push_back(entry.filename);
     index_to_article_name_.push_back(entry.link);
   }
-  std::cout << "Pagerank started scanning" << std::endl;
+  std::cout << "PageRanker started scanning." << std::endl;
   struct dirent *entry;
   DIR *directory;
   directory = opendir(pages_directory.c_str());
@@ -97,6 +102,8 @@ void PageRanker::ScanDirectory(const std::string& pages_directory)
 
 void PageRanker::BuildGraph()
 {
+  std::cout << "Building graph." << std::endl;
+  int count = 0;
   for (const auto& pair : filename_to_index_)
   {
     if (pageranker_terminated)
@@ -105,12 +112,13 @@ void PageRanker::BuildGraph()
     }
     std::string filename = pair.first;
     std::size_t index = pair.second;
+    graph_[index].push_back(index);
     std::string article_name;
     std::ifstream file(filename);
     std::getline(file, article_name);
     
     std::string link;
-    std::getline(file, link); // empty line
+    std::getline(file, link); // read empty line
     while (std::getline(file, link))
     {
       if (article_name_to_index_.count(link) == 0)
@@ -119,11 +127,71 @@ void PageRanker::BuildGraph()
       }
       graph_[index].push_back(article_name_to_index_[link]);
     }
-    std::cout << article_name << ' ' << graph_[index].size() << std::endl;
+    count++;
+    if (count % messages_threshold == 0)
+    {
+      std::cout << "Graph currently has " <<
+        count << " vertices." << std::endl;
+    }
   }
+  std::cout << "Graph created." << std::endl;
 }
 
 void PageRanker::StopPageRanker(int signal)
 {
   pageranker_terminated = signal;
+}
+
+long double PageRanker::PerformProbabilitiesIteration()
+{
+  std::vector<long double> new_probabilities(graph_.size(), 0);
+  for (std::size_t from = 0; from < graph_.size(); ++from)
+  {
+    for (std::size_t to : graph_[from])
+    {
+      new_probabilities[to] += probabilities_[from] /
+        (long double)graph_[from].size();
+    }
+  }
+  long double delta = 0;
+  for (std::size_t page = 0; page < graph_.size(); ++page)
+  {
+    long double new_probability = random_page_probability +
+      (1 - random_page_probability) * new_probabilities[page];
+    //long double new_probability = new_probabilities[page];
+    delta = std::max(delta, std::fabs(new_probability - probabilities_[page]));
+    probabilities_[page] = new_probability;
+  }
+  return delta;
+}
+
+void PageRanker::FindProbabilities(long double precision)
+{
+  long double delta = 1;
+  while (delta > precision)
+  {
+    delta = PerformProbabilitiesIteration();
+    std::cout << "New pagerank delta = " << delta << std::endl;
+  }
+}
+
+void PageRanker::SaveProbabilities(const std::string& filename)
+{
+  std::vector<std::pair<long double, FilenameAndLink>> sorted_articles;
+  for (const auto& entry : articles_map_.container)
+  {
+    if (filename_to_index_.count(entry.filename) == 0)
+    {
+      throw std::runtime_error("Could not find " + entry.filename);
+    }
+    sorted_articles.push_back({
+        probabilities_[filename_to_index_[entry.filename]],
+        entry});
+  }
+  std::sort(sorted_articles.rbegin(), sorted_articles.rend());
+  std::ofstream file(filename);
+  for (const auto& pair : sorted_articles)
+  {
+    file << pair.second << '\t' << pair.first << std::endl;
+  }
 }

@@ -1,19 +1,18 @@
 #include <pthread.h>
 
 #include <string>
+#include <iostream>
 
 #include "Indexer.h"
-#include "PageRanker.h"
 
 const int number_of_threads = 5;
 
 int main()
 {
-  PageRanker ranker("./data3/", "./data3/files_map");
-  return 0;
   Indexer wiki_indexer("./data3/",
-      "./index2/",
-      "./index2/indexed_files");
+      "./index/",
+      "./index/indexed_files");
+  std::cout << "Starting indexing." << std::endl;
   pthread_t threads[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
   {
@@ -30,6 +29,7 @@ int main()
   {
     pthread_join(threads[i], NULL);
   }
+  std::cout << "Indexing finished." << std::endl;
 
   return 0;
 }

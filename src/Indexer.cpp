@@ -35,7 +35,7 @@ void Indexer::GetFileList()
     return;
   }
   pthread_mutex_lock(&file_queue_mutex_);
-  while ((entry = readdir(directory)))
+  while ((entry = readdir(directory)) && !indexer_terminated)
   {
     std::string filename(entry->d_name);
     filename = files_directory_ + filename;
@@ -132,6 +132,7 @@ bool Indexer::IndexNextFile()
   pthread_mutex_lock(&file_queue_mutex_);
   if (files_in_directory_.empty())
   {
+    pthread_mutex_unlock(&file_queue_mutex_);
     return false;
   }
   std::string next_file = files_in_directory_.back();
