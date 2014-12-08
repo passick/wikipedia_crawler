@@ -1,5 +1,6 @@
 CXX=clang++
-CPPFLAGS=--std=c++11
+CPPFLAGS=--std=c++11 -O2
+CPPDEBUGFLAGS=--std=c++11 -DDEBUG -g
 
 COMMON_SRCS=
 CRAWLER_SRCS=src/main.cpp src/Crawler.cpp src/Downloader.cpp \
@@ -22,7 +23,7 @@ INDEXER_LDFLAGS=
 all: $(COMMON_SRCS) $(CRAWLER_SRCS) $(INDEXER_SRCS) \
   $(CRAWLER_EXECUTABLE) $(INDEXER_EXECUTABLE)
 
-debug: CXX += -DDEBUG -g
+debug: CPPFLAGS=$(CPPDEBUGFLAGS)
 debug: all
 
 $(CRAWLER_EXECUTABLE): $(COMMON_OBJS) $(CRAWLER_OBJS)
