@@ -2,4 +2,9 @@
 *.o
 *.out
 crawler
-/data/
+indexer
+pageranker
+tags
+find
+/data*/
+/index*/
