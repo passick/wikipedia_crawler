@@ -10,13 +10,13 @@ FilenameAndLink::FilenameAndLink(const std::string& string)
   {
     return;
   }
-  filename = string.substr(1, closing_quote_index - 1);
+  filename = parse_filename(string.substr(1, closing_quote_index - 1));
   link = string.substr(closing_quote_index + 2, std::string::npos);
 }
 
 FilenameAndLink::FilenameAndLink(const std::string& filename,
     const std::string& link) :
-  filename(filename), link(link)
+  link(link), filename(parse_filename(filename))
 { }
 
 bool FilenameAndLink::operator<(const FilenameAndLink& rhs) const
@@ -43,6 +43,12 @@ std::istream& operator>>(std::istream& stream,
   std::getline(stream, tmp);
   object = FilenameAndLink(tmp);
   return stream;
+}
+
+std::string FilenameAndLink::parse_filename(const std::string& filename)
+{
+  std::string::size_type file_extension_index = filename.rfind('.');
+  return filename.substr(0, file_extension_index);
 }
 
 size_t std::hash<FilenameAndLink>::operator()(const FilenameAndLink& obj) const

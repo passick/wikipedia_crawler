@@ -15,6 +15,8 @@ SearchEngine::SearchEngine(const std::string& index_directory,
     FilenameAndLink entry(file_line);
     long double rank;
     pagerank_file >> rank;
+    // read remaining newline symbol
+    std::getline(pagerank_file, file_line);
 
     pagerank_.insert({entry, rank});
   }
@@ -67,12 +69,5 @@ std::vector<FilenameAndLink> SearchEngine::Find(const std::string& query)
       {
         return pagerank_[entry1] < pagerank_[entry2];
       });
-  for (int i = 0; i < result.size() - 1; ++i)
-  {
-    if (pagerank_[result[i]] <= pagerank_[result[i + 1]])
-    {
-      std::cout << i << std::endl;
-    }
-  }
   return result;
 }
