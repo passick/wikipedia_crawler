@@ -26,7 +26,7 @@ There are four main parts of this project:
    It loads the data produced by indexer and pageranker and lets you search for some word (in some distant future it may be even a phrase!), spitting out a list of articles where this word appears, sorted by popularity, which was computed by pagerank.
 
 ### How to build it
-To build this project, you need to have POSIX system, on which `wget`, `make`, and some c++11 compiler must be installed.
+To build this project, you need to have POSIX system (well, there are some bugs that make it possible that on non-Linux machine it could crash), on which `wget`, `make`, and some c++11 compiler must be installed.
 By default compiler is set to `clang++`, but you could change it to `g++` or some other compiler in the first line of [`Makefile`](Makefile).
 
 When these requirements are met, you could simply issue `make` command in the root of this project and have everything built for you.
