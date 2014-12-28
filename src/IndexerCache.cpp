@@ -59,9 +59,10 @@ void IndexerCache::SaveFiles()
       if (!file.good())
       {
         throw std::runtime_error(
-            "Could not open file" + index_directory_ + filename);
+            "Could not open file " + index_directory_ + filename);
       }
     }
+    previous_filename = filename;
     file << file_and_list.first << ":\n";
     for (const auto& entry : file_and_list.second)
     {

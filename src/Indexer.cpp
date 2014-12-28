@@ -22,6 +22,14 @@ Indexer::Indexer(const std::string& files_directory,
   indexed_files_ = SaveableStringContainer<
     std::unordered_set<FilenameAndLink>>(list_of_indexed_files);
   GetFileList();
+  DIR *directory;
+  directory = opendir(index_directory_.c_str());
+  if (directory == NULL)
+  {
+    throw std::runtime_error(
+        "Could not open folder specified for saving index to (" +
+        index_directory_ + ")");
+  }
 }
 
 void Indexer::GetFileList()
@@ -31,7 +39,9 @@ void Indexer::GetFileList()
   directory = opendir(files_directory_.c_str());
   if (directory == NULL)
   {
-    perror("opendir");
+    throw std::runtime_error(
+        "Could not open folder specified for reading files from (" +
+        files_directory_ + ")");
     return;
   }
   pthread_mutex_lock(&file_queue_mutex_);

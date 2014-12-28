@@ -10,8 +10,8 @@ const int number_of_threads = 5;
 int main()
 {
   Indexer wiki_indexer("./data3/",
-      "./index2/",
-      "./index2/indexed_files");
+      "./index3/",
+      "./index3/indexed_files");
   std::cout << "Starting indexing." << std::endl;
   pthread_t threads[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
